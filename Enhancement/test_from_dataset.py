@@ -212,7 +212,7 @@ else:
 
 
     with torch.inference_mode():
-        for inp_path, tar_path in tqdm(input_paths, total=len(input_paths)):
+        for inp_path in tqdm(input_paths, total=len(input_paths)):
 
             torch.cuda.ipc_collect()
             torch.cuda.empty_cache()
