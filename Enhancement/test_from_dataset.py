@@ -205,24 +205,19 @@ if dataset in ['SID', 'SMID', 'SDSD_indoor', 'SDSD_outdoor']:
 else:
 
     input_dir = opt['datasets']['val']['dataroot_lq']
-    target_dir = opt['datasets']['val']['dataroot_gt']
     print(input_dir)
-    print(target_dir)
 
     input_paths = natsorted(
         glob(os.path.join(input_dir, '*.png')) + glob(os.path.join(input_dir, '*.jpg')))
 
-    target_paths = natsorted(glob(os.path.join(
-        target_dir, '*.png')) + glob(os.path.join(target_dir, '*.jpg')))
 
     with torch.inference_mode():
-        for inp_path, tar_path in tqdm(zip(input_paths, target_paths), total=len(target_paths)):
+        for inp_path, tar_path in tqdm(input_paths, total=len(input_paths)):
 
             torch.cuda.ipc_collect()
             torch.cuda.empty_cache()
 
             img = np.float32(utils.load_img(inp_path)) / 255.
-            target = np.float32(utils.load_img(tar_path)) / 255.
 
             img = torch.from_numpy(img).permute(2, 0, 1)
             input_ = img.unsqueeze(0).cuda()
@@ -264,12 +259,7 @@ else:
                 # This test setting is the same as KinD, LLFlow, and recent diffusion models
                 # Please refer to Line 73 (https://github.com/zhangyhuaee/KinD/blob/master/evaluate_LOLdataset.py)
                 mean_restored = cv2.cvtColor(restored.astype(np.float32), cv2.COLOR_BGR2GRAY).mean()
-                mean_target = cv2.cvtColor(target.astype(np.float32), cv2.COLOR_BGR2GRAY).mean()
-                restored = np.clip(restored * (mean_target / mean_restored), 0, 1)
 
-            psnr.append(utils.PSNR(target, restored))
-            ssim.append(utils.calculate_ssim(
-                img_as_ubyte(target), img_as_ubyte(restored)))
             if output_dir != '':
                 utils.save_img((os.path.join(output_dir, os.path.splitext(
                     os.path.split(inp_path)[-1])[0] + '.png')), img_as_ubyte(restored))
@@ -277,7 +267,7 @@ else:
                 utils.save_img((os.path.join(result_dir, os.path.splitext(
                     os.path.split(inp_path)[-1])[0] + '.png')), img_as_ubyte(restored))
 
-psnr = np.mean(np.array(psnr))
-ssim = np.mean(np.array(ssim))
-print("PSNR: %f " % (psnr))
-print("SSIM: %f " % (ssim))
+
+print("Done")
+
+ 
