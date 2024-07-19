@@ -68,7 +68,7 @@ parser.add_argument('--weights', default='pretrained_weights/SDSD_indoor.pth',
                     type=str, help='Path to weights')
 parser.add_argument('--dataset', default='SDSD_indoor', type=str,
                     help='Test Dataset') 
-parser.add_argument('--gpus', type=str, default="0", help='GPU devices.')
+parser.add_argument('--gpus', type=str, default="0, 1", help='GPU devices.')
 parser.add_argument('--GT_mean', action='store_true', help='Use the mean of GT to rectify the output of the model')
 parser.add_argument('--self_ensemble', action='store_true', help='Use self-ensemble to obtain better results')
 
