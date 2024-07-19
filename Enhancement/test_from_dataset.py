@@ -25,9 +25,6 @@ from skimage import metrics
 
 from basicsr.models import create_model
 from basicsr.utils.options import dict2str, parse
-import logging
-
-logging.basicConfig(level=logging.ERROR)
 
 def self_ensemble(x, model):
     def forward_transformed(x, hflip, vflip, rotate, model):
@@ -246,11 +243,8 @@ else:
                     restored_1 = self_ensemble(input_1, model_restoration)
                     restored_2 = self_ensemble(input_2, model_restoration)
                 else:
-                    try: 
-                        restored_1 = model_restoration(input_1)
-                        restored_2 = model_restoration(input_2)
-                    except RuntimeError:
-                        continue
+                    restored_1 = model_restoration(input_1)
+                    restored_2 = model_restoration(input_2)
                 restored = torch.zeros_like(input_)
                 restored[:, :, :, 1::2] = restored_1
                 restored[:, :, :, 0::2] = restored_2
