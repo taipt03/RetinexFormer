@@ -208,7 +208,7 @@ else:
     print(input_dir)
 
     input_paths = natsorted(
-        glob(os.path.join(input_dir, '*.png')) + glob(os.path.join(input_dir, '*.jpg')))
+        glob(os.path.join(input_dir, '*.png')) + glob(os.path.join(input_dir, '*.jpeg')))
 
 
     with torch.inference_mode():
