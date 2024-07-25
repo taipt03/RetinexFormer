@@ -91,7 +91,7 @@ def ssim(img1, img2):
 
 def load_img(filepath):
     img = cv2.imread(filepath)
-    resized_img = cv2.resize(img, (224, 224))
+    // resized_img = cv2.resize(img, (224, 224))
     img_rgb = cv2.cvtColor(resized_img, cv2.COLOR_BGR2RGB)
     return img_rgb
 
