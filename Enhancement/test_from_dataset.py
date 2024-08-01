@@ -204,70 +204,78 @@ if dataset in ['SID', 'SMID', 'SDSD_indoor', 'SDSD_outdoor']:
                 os.path.split(inp_path)[-1])[0] + '.png')), img_as_ubyte(target))
 else:
 
-    input_dir = opt['datasets']['val']['dataroot_lq']
-    print(input_dir)
+    def load_img(image_path):
+        return cv2.imread(image_path)
 
-    input_paths = natsorted(
-        glob(os.path.join(input_dir, '*.png')) + glob(os.path.join(input_dir, '*.jpeg'))+ glob(os.path.join(input_dir, '*.JPG')))
+    single_image_path = '/kaggle/input/chen-vcor/data/data/black/007ab0bb16.jpg'  
 
+    classification_model_path = '/kaggle/input/car-efficientnet/pytorch/default/1/best_model.pth' 
+    classification_model = torch.load(classification_model_path)
+    classification_model.eval()
 
+    # Load and process the image
     with torch.inference_mode():
-        for inp_path in tqdm(input_paths, total=len(input_paths)):
+        torch.cuda.ipc_collect()
+        torch.cuda.empty_cache()
 
-            torch.cuda.ipc_collect()
-            torch.cuda.empty_cache()
+        img = np.float32(load_img(single_image_path)) / 255.
+        img = torch.from_numpy(img).permute(2, 0, 1)
+        input_ = img.unsqueeze(0).cuda()
 
-            img = np.float32(utils.load_img(inp_path)) / 255.
+        # Padding in case images are not multiples of 4
+        b, c, h, w = input_.shape
+        factor = 4  # Assuming factor is defined elsewhere in your script
+        H, W = ((h + factor) // factor) * factor, ((w + factor) // factor) * factor
+        padh = H - h if h % factor != 0 else 0
+        padw = W - w if w % factor != 0 else 0
+        input_ = F.pad(input_, (0, padw, 0, padh), 'reflect')
 
-            img = torch.from_numpy(img).permute(2, 0, 1)
-            input_ = img.unsqueeze(0).cuda()
-
-            # Padding in case images are not multiples of 4
-            b, c, h, w = input_.shape
-            H, W = ((h + factor) // factor) * \
-                factor, ((w + factor) // factor) * factor
-            padh = H - h if h % factor != 0 else 0
-            padw = W - w if w % factor != 0 else 0
-            input_ = F.pad(input_, (0, padw, 0, padh), 'reflect')
-
-            if h < 3000 and w < 3000:
-                if args.self_ensemble:
-                    restored = self_ensemble(input_, model_restoration)
-                else:
-                    restored = model_restoration(input_)
+        if h < 3000 and w < 3000:
+            if args.self_ensemble:
+                restored = self_ensemble(input_, model_restoration)
             else:
-                # split and test
-                input_1 = input_[:, :, :, 1::2]
-                input_2 = input_[:, :, :, 0::2]
-                if args.self_ensemble:
-                    restored_1 = self_ensemble(input_1, model_restoration)
-                    restored_2 = self_ensemble(input_2, model_restoration)
-                else:
-                    restored_1 = model_restoration(input_1)
-                    restored_2 = model_restoration(input_2)
-                restored = torch.zeros_like(input_)
-                restored[:, :, :, 1::2] = restored_1
-                restored[:, :, :, 0::2] = restored_2
-
-            # Unpad images to original dimensions
-            restored = restored[:, :, :h, :w]
-
-            restored = torch.clamp(restored, 0, 1).cpu(
-            ).detach().permute(0, 2, 3, 1).squeeze(0).numpy()
-
-            if args.GT_mean:
-                # This test setting is the same as KinD, LLFlow, and recent diffusion models
-                # Please refer to Line 73 (https://github.com/zhangyhuaee/KinD/blob/master/evaluate_LOLdataset.py)
-                mean_restored = cv2.cvtColor(restored.astype(np.float32), cv2.COLOR_BGR2GRAY).mean()
-
-            if output_dir != '':
-                utils.save_img((os.path.join(output_dir, os.path.splitext(
-                    os.path.split(inp_path)[-1])[0] + '.png')), img_as_ubyte(restored))
+                restored = model_restoration(input_)
+        else:
+            # split and test
+            input_1 = input_[:, :, :, 1::2]
+            input_2 = input_[:, :, :, 0::2]
+            if args.self_ensemble:
+                restored_1 = self_ensemble(input_1, model_restoration)
+                restored_2 = self_ensemble(input_2, model_restoration)
             else:
-                utils.save_img((os.path.join(result_dir, os.path.splitext(
-                    os.path.split(inp_path)[-1])[0] + '.png')), img_as_ubyte(restored))
+                restored_1 = model_restoration(input_1)
+                restored_2 = model_restoration(input_2)
+            restored = torch.zeros_like(input_)
+            restored[:, :, :, 1::2] = restored_1
+            restored[:, :, :, 0::2] = restored_2
 
+        # Unpad images to original dimensions
+        restored = restored[:, :, :h, :w]
+
+        restored = torch.clamp(restored, 0, 1).cpu().detach().permute(0, 2, 3, 1).squeeze(0).numpy()
+
+        if args.GT_mean:
+            # This test setting is the same as KinD, LLFlow, and recent diffusion models
+            # Please refer to Line 73 (https://github.com/zhangyhuaee/KinD/blob/master/evaluate_LOLdataset.py)
+            mean_restored = cv2.cvtColor(restored.astype(np.float32), cv2.COLOR_BGR2GRAY).mean()
+
+        output_dir = ''  # Replace with your output directory if needed
+        if output_dir != '':
+            utils.save_img((os.path.join(output_dir, os.path.splitext(os.path.split(single_image_path)[-1])[0] + '.png')), img_as_ubyte(restored))
+        else:
+            result_dir = 'path_to_result_dir'  # Replace with your result directory
+            utils.save_img((os.path.join(result_dir, os.path.splitext(os.path.split(single_image_path)[-1])[0] + '.png')), img_as_ubyte(restored))
+
+        img_classification = torch.from_numpy(restored).permute(2, 0, 1).unsqueeze(0).cuda()
+
+        with torch.no_grad():
+            output = classification_model(img_classification)
+
+        # Print the classification result
+        _, predicted = torch.max(output, 1)
+        print(f'Classification result: {predicted.item()}')
 
 print("Done")
+
 
  
