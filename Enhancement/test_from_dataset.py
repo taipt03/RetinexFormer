@@ -94,7 +94,7 @@ opt['dist'] = False
 
 x = yaml.load(open(args.opt, mode='r'), Loader=Loader)
 s = x['network_g'].pop('type')
-##########################
+##############git@github.com:taipt03/RetinexFormer.git############
 
 
 model_restoration = create_model(opt).net_g
@@ -209,7 +209,7 @@ else:
 
     single_image_path = '/kaggle/input/chen-vcor/data/data/black/007ab0bb16.jpg'  
 
-    classification_model_path = '/kaggle/input/car-efficientnet/pytorch/default/1/best_model.pth' 
+    classification_model_path = '/kaggle/input/efficientnet-chen/pytorch/default/1/model.pth' 
     classification_model = torch.load(classification_model_path)
     classification_model.eval()
 
