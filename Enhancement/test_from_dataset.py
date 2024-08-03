@@ -1253,6 +1253,9 @@ else:
     
     classification_model = EfficientNet.from_name('efficientnet-b0')
     classification_model.load_state_dict(torch.load("/kaggle/input/efficientnet-chen/pytorch/default/5/best_model.pth"))
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    model.to(device)
+
     classification_model.eval()
 
     # Load and process the image
