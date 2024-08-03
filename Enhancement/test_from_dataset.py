@@ -25,6 +25,10 @@ from skimage import metrics
 
 from basicsr.models import create_model
 from basicsr.utils.options import dict2str, parse
+from efficientnet import EfficientNet
+
+
+
 
 def self_ensemble(x, model):
     def forward_transformed(x, hflip, vflip, rotate, model):
@@ -209,8 +213,10 @@ else:
 
     single_image_path = '/kaggle/input/chen-vcor/data/data/black/007ab0bb16.jpg'  
 
+    
     classification_model_path = '/kaggle/input/efficientnet-chen/pytorch/default/3/best.pth' 
-    classification_model = torch.load(classification_model_path)
+    classification_model = EfficientNet.from_name('efficientnet-b0')
+    classification_model.load_state_dict(torch.load("/kaggle/input/efficientnet-chen/pytorch/default/3/best.pth"))
     classification_model.eval()
 
     # Load and process the image
