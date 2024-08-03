@@ -25,7 +25,7 @@ from skimage import metrics
 
 from basicsr.models import create_model
 from basicsr.utils.options import dict2str, parse
-from efficientnet import EfficientNet
+import efficientnet
 
 
 
@@ -215,7 +215,7 @@ else:
 
     
     classification_model_path = '/kaggle/input/efficientnet-chen/pytorch/default/3/best.pth' 
-    classification_model = EfficientNet.from_name('efficientnet-b0')
+    classification_model = efficientnet.EfficientNet.from_name('efficientnet-b0')
     classification_model.load_state_dict(torch.load("/kaggle/input/efficientnet-chen/pytorch/default/3/best.pth"))
     classification_model.eval()
 
