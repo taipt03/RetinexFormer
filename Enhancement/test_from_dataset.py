@@ -10,6 +10,7 @@ import os
 import argparse
 from tqdm import tqdm
 import cv2
+import time 
 
 import torch.nn as nn
 import torch
@@ -1258,6 +1259,7 @@ else:
 
     classification_model.eval()
 
+    start_time = time.time()
     # Load and process the image
     with torch.inference_mode():
         torch.cuda.ipc_collect()
@@ -1318,9 +1320,13 @@ else:
 
         # Print the classification result
         _, predicted = torch.max(output, 1)
+        
         print(f'Classification result: {predicted.item()}')
-
-print("Done")
+    end_time = time.time()
+    
+    inference_time = end_time - start_time
+    
+print(f"Inference time: {inference_time:.4f}")
 
 
  
