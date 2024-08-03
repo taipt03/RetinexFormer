@@ -929,7 +929,8 @@ class EfficientNet(nn.Module):
 
     @classmethod
     def from_pretrained(cls, model_name, weights_path=None, advprop=False, 
-                        in_channels=3, num_classes=len(classes), **override_params):
+                        in_channels=3, num_classes=8, **override_params):
+        #change here
         """create an efficientnet model according to name.
 
         Args:
