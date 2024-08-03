@@ -1251,9 +1251,8 @@ else:
     single_image_path = '/kaggle/input/chen-vcor/data/data/black/007ab0bb16.jpg'  
 
     
-    classification_model_path = '/kaggle/input/efficientnet-chen/pytorch/default/4/best_model-94.pth' 
     classification_model = EfficientNet.from_name('efficientnet-b0')
-    classification_model.load_state_dict(torch.load("/kaggle/input/efficientnet-chen/pytorch/default/3/best.pth"))
+    classification_model.load_state_dict(torch.load("/kaggle/input/efficientnet-chen/pytorch/default/4/best_model-94.pth"))
     classification_model.eval()
 
     # Load and process the image
