@@ -1079,6 +1079,17 @@ def self_ensemble(x, model):
                 t.append(forward_transformed(x, hflip, vflip, rot, model))
     t = torch.stack(t)
     return torch.mean(t, dim=0)
+class SaveFeatures():
+    """ Extract pretrained activations"""
+    features = None
+    def __init__(self, m):
+        self.hook = m.register_forward_hook(self.hook_fn)
+        
+    def hook_fn(self, module, input, output):
+        self.features = ((output.cpu()).data).numpy()
+        
+    def remove(self): 
+        self.hook.remove()
 
 parser = argparse.ArgumentParser(
     description='Image Enhancement using Retinexformer')
